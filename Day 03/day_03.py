@@ -18,15 +18,6 @@ def day_03_puzzle_1(vals):
 
 
 def day_03_puzzle_2(vals):
-    def bin_to_dec(bin):
-        dec = 0
-        bin = str(bin)
-        num_length = len(bin)
-        for ix, digit in enumerate(bin):
-            weight = 2 ** (num_length - ix - 1)
-            dec += int(digit) * weight
-        return dec
-
     def determine_rating(most_common=True):
         num_length = len(vals[0])
         legit_vals = vals
@@ -48,7 +39,7 @@ def day_03_puzzle_2(vals):
 
     oxygen = determine_rating(True)
     co2 = determine_rating(False)
-    return bin_to_dec(oxygen) * bin_to_dec(co2)
+    return int(oxygen, 2) * int(co2, 2)
 
 
 print(f"Solution for Day 3 Puzzle 1: {day_03_puzzle_1(inputs)}")
