@@ -7,6 +7,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::digit1,
 };
+use nom::multi::separated_list1;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 enum CubeColor {
@@ -15,27 +16,67 @@ enum CubeColor {
     Blue,
 }
 
-struct Cubes {
+struct Cube {
     color: CubeColor,
     qty: usize,
 }
 
+impl Cube {
+    // 3 blue
+    fn parse(input: &str) -> IResult<&str, Self> {
+        let (input, qty) = digit1(input)?;
+        let (input, _) = tag(" ")(input)?;
+        let mut color;
+        match input {
+            "red" => color = CubeColor::Red,
+            "green" => color = CubeColor::Green,
+            "blue" => color = CubeColor::Blue,
+            _ => panic!("Unknown color"),
+        }
+
+        Ok((input, Self {
+            color,
+            qty: qty.parse().unwrap(),
+        }))
+    }
+}
+
+struct Round {
+    cubes: Vec<Cube>,
+}
+
+impl Round {
+    // 3 blue, 4 red
+    fn parse(input: &str) -> IResult<&str, Self> {
+        let (input, cubes) = separated_list1(tag(", "), Cube::parse)(input)?;
+        Ok((input, Self {
+            cubes,
+        }))
+    }
+}
+
 struct Game {
     id: usize,
-    pulls: Vec<Vec<Cubes>>,
+    rounds: Vec<Round>,
 }
 
 impl Game {
     // Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+    // -> id: 1
+    // -> rounds: [[3 blue, 4 red], [1 red, 2 green, 6 blue], [2 green]]
     fn parse(input: &str) -> IResult<&str, Self> {
         let (input, id) = preceded(
             tag("Game "),
             digit1,
         )(input)?;
+        let (input, rounds) = preceded(
+            tag(": "),
+            separated_list1(tag("; "), Round::parse))(input)?;
+        ;
 
         Ok((input, Self {
             id: id.parse().unwrap(),
-            pulls: Vec::new(),
+            rounds,
         }))
     }
 }
